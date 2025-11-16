@@ -75,7 +75,7 @@ export const tallyToClickup = new Workflow({
 
         return {
           name: `${data.nome} ${data.sobrenome}`,
-          description: `**Como ficou sabendo do BuildZero:**
+          markdown_description: `**Como ficou sabendo do BuildZero:**
 ${data.comoSoube}
 
 **Ocupação atual:**
