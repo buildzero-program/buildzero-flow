@@ -12,12 +12,12 @@ const SUBMISSION_DATE_CUSTOM_FIELD_ID = 'eeb58134-ec6f-4c35-a0f2-728f6b863bc9'
 
 // Evolution API Config (WhatsApp)
 const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL || 'https://evo.buildzero.ai'
-const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY || 'REMOVED_EVOLUTION_KEY'
 const EVOLUTION_INSTANCE_NAME = process.env.EVOLUTION_INSTANCE_NAME || 'BuildZero Team'
+const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY
 
 // Avatar API Config (Email to Profile Picture)
-const AVATAR_API_USERNAME = process.env.AVATAR_API_USERNAME || 'pedrohnas'
-const AVATAR_API_PASSWORD = process.env.AVATAR_API_PASSWORD || 'REMOVED_AVATAR_PASSWORD'
+const AVATAR_API_USERNAME = process.env.AVATAR_API_USERNAME
+const AVATAR_API_PASSWORD = process.env.AVATAR_API_PASSWORD
 
 interface CSVRow {
   'Submission ID': string
