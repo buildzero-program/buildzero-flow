@@ -1,10 +1,12 @@
 import { testWorkflow } from './test-workflow'
 import { tallyToClickup } from './tally-to-clickup'
+import { stripeToMetaPixel } from './stripe-to-meta-pixel'
 import type { Workflow } from '~/lib/workflow-engine/Workflow'
 
 const workflows: Record<string, Workflow> = {
   'test-workflow': testWorkflow,
-  'tally-to-clickup': tallyToClickup
+  'tally-to-clickup': tallyToClickup,
+  'stripe-to-meta-pixel': stripeToMetaPixel
 }
 
 export function getWorkflow(id: string): Workflow | undefined {
