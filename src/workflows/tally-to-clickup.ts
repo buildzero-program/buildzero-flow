@@ -171,29 +171,45 @@ ${data.porqueBuildZero}`,
             )
             const number = whatsapp.replace(/\D/g, '')
 
-            const response = await fetch(
-              `${context.secrets.EVOLUTION_API_URL}/chat/fetchProfilePictureUrl/${instanceName}`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'apikey': context.secrets.EVOLUTION_API_KEY || ''
-                },
-                body: JSON.stringify({
-                  number: `${number}@s.whatsapp.net`
-                })
-              }
-            )
+            // Helper function to fetch WhatsApp photo
+            const fetchWhatsAppPhoto = async (num: string) => {
+              const response = await fetch(
+                `${context.secrets.EVOLUTION_API_URL}/chat/fetchProfilePictureUrl/${instanceName}`,
+                {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': context.secrets.EVOLUTION_API_KEY || ''
+                  },
+                  body: JSON.stringify({
+                    number: `${num}@s.whatsapp.net`
+                  })
+                }
+              )
 
-            if (response.ok) {
-              const data = await response.json()
-              if (data.profilePictureUrl) {
-                photoUrl = data.profilePictureUrl
-                photoSource = 'whatsapp'
-                context.logger('✅ Foto WhatsApp encontrada')
-              } else {
-                context.logger('⚠️  WhatsApp sem foto de perfil')
+              if (response.ok) {
+                const data = await response.json()
+                return data.profilePictureUrl || null
               }
+              return null
+            }
+
+            // Try with original number
+            photoUrl = await fetchWhatsAppPhoto(number)
+
+            // If Brazilian number (13 digits: 55 + 2 DDD + 9 digits) and no photo found,
+            // try without the 9th digit (old format before Brazil's mobile number change)
+            if (!photoUrl && number.startsWith('55') && number.length === 13) {
+              context.logger('⚠️  Tentando formato antigo (sem o 9)...')
+              const numberWithout9 = number.substring(0, 4) + number.substring(5)
+              photoUrl = await fetchWhatsAppPhoto(numberWithout9)
+            }
+
+            if (photoUrl) {
+              photoSource = 'whatsapp'
+              context.logger('✅ Foto WhatsApp encontrada')
+            } else {
+              context.logger('⚠️  WhatsApp sem foto de perfil')
             }
           } catch (error: any) {
             context.logger(`⚠️  Erro Evolution API: ${error.message}`)

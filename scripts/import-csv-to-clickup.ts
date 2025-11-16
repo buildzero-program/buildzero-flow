@@ -2,7 +2,7 @@ import fs from 'fs'
 import { parse } from 'csv-parse/sync'
 
 // ClickUp API Config
-const CLICKUP_API_KEY = process.env.CLICKUP_API_KEY || 'REMOVED_CLICKUP_KEY'
+const CLICKUP_API_KEY = process.env.CLICKUP_API_KEY
 const CLICKUP_LIST_ID = '901322211570'
 const EMAIL_CUSTOM_FIELD_ID = '3705639e-668f-4eb4-977c-5f865653b3c3'
 const WHATSAPP_CUSTOM_FIELD_ID = '081c88b5-97a6-4e36-8c1f-61f2ac879913'
@@ -170,29 +170,45 @@ async function uploadProfilePhoto(taskId: string, email: string, whatsapp: strin
       const instanceName = encodeURIComponent(EVOLUTION_INSTANCE_NAME)
       const number = whatsapp.replace(/\D/g, '')
 
-      const response = await fetch(
-        `${EVOLUTION_API_URL}/chat/fetchProfilePictureUrl/${instanceName}`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': EVOLUTION_API_KEY
-          },
-          body: JSON.stringify({
-            number: `${number}@s.whatsapp.net`
-          })
-        }
-      )
+      // Helper function to fetch WhatsApp photo
+      const fetchWhatsAppPhoto = async (num: string) => {
+        const response = await fetch(
+          `${EVOLUTION_API_URL}/chat/fetchProfilePictureUrl/${instanceName}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': EVOLUTION_API_KEY
+            },
+            body: JSON.stringify({
+              number: `${num}@s.whatsapp.net`
+            })
+          }
+        )
 
-      if (response.ok) {
-        const data = await response.json()
-        if (data.profilePictureUrl) {
-          photoUrl = data.profilePictureUrl
-          photoSource = 'whatsapp'
-          console.log(`      ✅ Foto WhatsApp encontrada`)
-        } else {
-          console.log(`      ⚠️  WhatsApp sem foto de perfil`)
+        if (response.ok) {
+          const data = await response.json()
+          return data.profilePictureUrl || null
         }
+        return null
+      }
+
+      // Try with original number
+      photoUrl = await fetchWhatsAppPhoto(number)
+
+      // If Brazilian number (13 digits: 55 + 2 DDD + 9 digits) and no photo found,
+      // try without the 9th digit (old format before Brazil's mobile number change)
+      if (!photoUrl && number.startsWith('55') && number.length === 13) {
+        console.log(`      ⚠️  Tentando formato antigo (sem o 9)...`)
+        const numberWithout9 = number.substring(0, 4) + number.substring(5)
+        photoUrl = await fetchWhatsAppPhoto(numberWithout9)
+      }
+
+      if (photoUrl) {
+        photoSource = 'whatsapp'
+        console.log(`      ✅ Foto WhatsApp encontrada`)
+      } else {
+        console.log(`      ⚠️  WhatsApp sem foto de perfil`)
       }
     } catch (error: any) {
       console.log(`      ⚠️  Erro Evolution API: ${error.message}`)
