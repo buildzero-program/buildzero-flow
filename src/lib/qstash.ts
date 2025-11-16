@@ -9,8 +9,9 @@ export async function enqueueNode(payload: {
   nodeIndex: number
   input: any
 }) {
-  const baseUrl = process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}`
+  // Use custom domain in production, localhost in dev
+  const baseUrl = process.env.NODE_ENV === 'production'
+    ? 'https://flow.buildzero.ai'
     : 'http://localhost:3000'
 
   const url = `${baseUrl}/api/workers/execute-node`
