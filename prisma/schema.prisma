@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+    provider = "prisma-client-js"
+    output   = "../generated/prisma"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+enum ExecutionStatus {
+    RUNNING
+    COMPLETED
+    FAILED
+}
+
+enum LogStatus {
+    RUNNING
+    SUCCESS
+    FAILED
+    RETRYING
+}
+
+model Execution {
+    id               String          @id @default(cuid())
+    workflowId       String
+    status           ExecutionStatus @default(RUNNING)
+    currentNodeIndex Int             @default(0)
+    startedAt        DateTime        @default(now())
+    finishedAt       DateTime?
+    logs             ExecutionLog[]
+
+    @@index([workflowId])
+    @@index([status])
+    @@index([startedAt])
+}
+
+model ExecutionLog {
+    id          String     @id @default(cuid())
+    executionId String
+    execution   Execution  @relation(fields: [executionId], references: [id], onDelete: Cascade)
+    nodeIndex   Int
+    nodeId      String
+    nodeName    String
+    input       Json       // { data: {...}, itemIndex: 0 }
+    output      Json?      // { data: {...}, itemIndex: 0 }
+    error       String?    // Error message if node failed
+    status      LogStatus  @default(RUNNING)
+    attempt     Int        @default(1)
+    startedAt   DateTime   @default(now())
+    finishedAt  DateTime?
+    durationMs  Int?
+
+    @@index([executionId])
+    @@index([status])
+}
