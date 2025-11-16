@@ -2,7 +2,7 @@ import fs from 'fs'
 import { parse } from 'csv-parse/sync'
 
 // ClickUp API Config
-const CLICKUP_API_KEY = process.env.CLICKUP_API_KEY
+const CLICKUP_API_KEY = process.env.CLICKUP_API_KEY || ''
 const CLICKUP_LIST_ID = '901322211570'
 const EMAIL_CUSTOM_FIELD_ID = '3705639e-668f-4eb4-977c-5f865653b3c3'
 const WHATSAPP_CUSTOM_FIELD_ID = '081c88b5-97a6-4e36-8c1f-61f2ac879913'
@@ -13,11 +13,11 @@ const SUBMISSION_DATE_CUSTOM_FIELD_ID = 'eeb58134-ec6f-4c35-a0f2-728f6b863bc9'
 // Evolution API Config (WhatsApp)
 const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL || 'https://evo.buildzero.ai'
 const EVOLUTION_INSTANCE_NAME = process.env.EVOLUTION_INSTANCE_NAME || 'BuildZero Team'
-const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY
+const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY || ''
 
 // Avatar API Config (Email to Profile Picture)
-const AVATAR_API_USERNAME = process.env.AVATAR_API_USERNAME
-const AVATAR_API_PASSWORD = process.env.AVATAR_API_PASSWORD
+const AVATAR_API_USERNAME = process.env.AVATAR_API_USERNAME || ''
+const AVATAR_API_PASSWORD = process.env.AVATAR_API_PASSWORD || ''
 
 interface CSVRow {
   'Submission ID': string
