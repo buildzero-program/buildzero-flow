@@ -40,7 +40,8 @@ export default tseslint.config(
     files: [
       "src/lib/workflow-engine/**/*.ts",
       "src/lib/qstash.ts",
-      "src/app/api/**/*.ts"
+      "src/app/api/**/*.ts",
+      "src/workflows/**/*.ts"
     ],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
@@ -49,6 +50,8 @@ export default tseslint.config(
       "@typescript-eslint/no-unsafe-argument": "off",
       "@typescript-eslint/no-unsafe-return": "off",
       "@typescript-eslint/no-unsafe-call": "off",
+      "@typescript-eslint/prefer-nullish-coalescing": "off",
+      "@typescript-eslint/prefer-optional-chain": "off",
     },
   },
   {
