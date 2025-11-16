@@ -22,6 +22,10 @@ export const tallyToClickup = new Workflow({
         context.logger('Normalizing Tally webhook data')
 
         const fields = input.data.data?.fields || []
+        const submissionId = input.data.data?.submissionId || ''
+        const respondentId = input.data.data?.respondentId || ''
+        const createdAt = input.data.data?.createdAt || ''
+
         const findField = (label: string) =>
           fields.find((f: any) => f.label.trim() === label)?.value || ''
 
@@ -43,7 +47,7 @@ export const tallyToClickup = new Workflow({
         const objetivo = findField('Qual seu principal objetivo nos próximos 90 dias?')
         const porqueBuildZero = findField('Por que BuildZero faz sentido pro seu momento atual e por que devemos te aceitar na comunidade?')
 
-        context.logger(`Extracted: ${nome} ${sobrenome} (${email})`)
+        context.logger(`Extracted: ${nome} ${sobrenome} (${email}) - Submission: ${submissionId}`)
 
         return {
           nome,
@@ -54,7 +58,10 @@ export const tallyToClickup = new Workflow({
           ocupacao,
           faturamento,
           objetivo,
-          porqueBuildZero
+          porqueBuildZero,
+          submissionId,
+          respondentId,
+          createdAt
         }
       }
     }),
@@ -72,6 +79,9 @@ export const tallyToClickup = new Workflow({
       body: (input, context) => {
         const data = input.data
         context.logger(`Creating ClickUp task for: ${data.nome} ${data.sobrenome}`)
+
+        // Convert createdAt to Unix timestamp (milliseconds)
+        const submissionDate = data.createdAt ? new Date(data.createdAt).getTime() : null
 
         return {
           name: `${data.nome} ${data.sobrenome}`,
@@ -91,12 +101,24 @@ ${data.objetivo}
 ${data.porqueBuildZero}`,
           custom_fields: [
             {
-              id: '3705639e-668f-4eb4-977c-5f865653b3c3',
+              id: '3705639e-668f-4eb4-977c-5f865653b3c3', // E-mail
               value: data.email
             },
             {
-              id: '081c88b5-97a6-4e36-8c1f-61f2ac879913',
+              id: '081c88b5-97a6-4e36-8c1f-61f2ac879913', // WhatsApp
               value: data.whatsapp
+            },
+            {
+              id: 'd85e2e81-6a0a-4d4f-bc47-974c273cfb71', // Submission ID
+              value: data.submissionId
+            },
+            {
+              id: '0d49322b-72b5-4c3a-bb29-d784b894c1ee', // Respondent ID
+              value: data.respondentId
+            },
+            {
+              id: 'eeb58134-ec6f-4c35-a0f2-728f6b863bc9', // Data de Submissão
+              value: submissionDate
             }
           ]
         }
