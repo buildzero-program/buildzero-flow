@@ -2,6 +2,7 @@ import { Workflow } from '~/lib/workflow-engine/Workflow'
 import { TriggerNode } from '~/lib/workflow-engine/nodes/TriggerNode'
 import { NormalizeNode } from '~/lib/workflow-engine/nodes/NormalizeNode'
 import { HttpNode } from '~/lib/workflow-engine/nodes/HttpNode'
+import { CodeNode } from '~/lib/workflow-engine/nodes/CodeNode'
 
 export const tallyToClickup = new Workflow({
   id: 'tally-to-clickup',
@@ -83,20 +84,32 @@ export const tallyToClickup = new Workflow({
         // Convert createdAt to Unix timestamp (milliseconds)
         const submissionDate = data.createdAt ? new Date(data.createdAt).getTime() : null
 
+        // Format date for description
+        const dateFormatted = data.createdAt
+          ? new Date(data.createdAt).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })
+          : ''
+
         return {
           name: `${data.nome} ${data.sobrenome}`,
-          markdown_description: `**Como ficou sabendo do BuildZero:**
+          markdown_description: `📅 **Data de Submissão:** ${dateFormatted}
+
+---
+**Como ficou sabendo do BuildZero:**
 ${data.comoSoube}
 
+---
 **Ocupação atual:**
 ${data.ocupacao}
 
+---
 **Faturamento mensal:**
 ${data.faturamento}
 
+---
 **Objetivo nos próximos 90 dias:**
 ${data.objetivo}
 
+---
 **Por que BuildZero:**
 ${data.porqueBuildZero}`,
           custom_fields: [
@@ -121,6 +134,153 @@ ${data.porqueBuildZero}`,
               value: submissionDate
             }
           ]
+        }
+      }
+    }),
+
+    // Node 3: Upload Profile Photo
+    new CodeNode({
+      id: 'upload-profile-photo',
+      name: 'Upload Profile Photo',
+      execute: async (input, context) => {
+        // input.data = task created in previous node (HttpNode)
+        const task = input.data
+        const taskId = task.id
+
+        // Extract email and whatsapp from task custom_fields
+        const emailField = task.custom_fields?.find(
+          (f: any) => f.id === '3705639e-668f-4eb4-977c-5f865653b3c3'
+        )
+        const whatsappField = task.custom_fields?.find(
+          (f: any) => f.id === '081c88b5-97a6-4e36-8c1f-61f2ac879913'
+        )
+
+        const email = emailField?.value
+        const whatsapp = whatsappField?.value
+
+        let photoUrl: string | null = null
+        let photoSource: string | null = null
+
+        // === 1. Try WhatsApp (Evolution API) ===
+        if (whatsapp) {
+          try {
+            context.logger('🔍 Buscando foto do WhatsApp...')
+
+            const instanceName = encodeURIComponent(
+              context.secrets.EVOLUTION_INSTANCE_NAME || ''
+            )
+            const number = whatsapp.replace(/\D/g, '')
+
+            const response = await fetch(
+              `${context.secrets.EVOLUTION_API_URL}/chat/fetchProfilePictureUrl/${instanceName}`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'apikey': context.secrets.EVOLUTION_API_KEY || ''
+                },
+                body: JSON.stringify({
+                  number: `${number}@s.whatsapp.net`
+                })
+              }
+            )
+
+            if (response.ok) {
+              const data = await response.json()
+              if (data.profilePictureUrl) {
+                photoUrl = data.profilePictureUrl
+                photoSource = 'whatsapp'
+                context.logger('✅ Foto WhatsApp encontrada')
+              } else {
+                context.logger('⚠️  WhatsApp sem foto de perfil')
+              }
+            }
+          } catch (error: any) {
+            context.logger(`⚠️  Erro Evolution API: ${error.message}`)
+          }
+        }
+
+        // === 2. Fallback: Try Avatar API (email) ===
+        if (!photoUrl && email) {
+          try {
+            context.logger('🔍 Buscando foto do email...')
+
+            const response = await fetch('https://avatarapi.com/v2/api.aspx', {
+              method: 'POST',
+              headers: { 'Content-Type': 'text/plain' },
+              body: JSON.stringify({
+                username: context.secrets.AVATAR_API_USERNAME || '',
+                password: context.secrets.AVATAR_API_PASSWORD || '',
+                email: email
+              })
+            })
+
+            if (response.ok) {
+              const data = await response.json()
+              if (data.Success && data.Image && !data.IsDefault) {
+                photoUrl = data.Image
+                photoSource = `email-${data.Source.Name.toLowerCase()}`
+                context.logger(`✅ Foto encontrada via ${data.Source.Name}`)
+              } else {
+                context.logger('⚠️  Email sem foto disponível')
+              }
+            }
+          } catch (error: any) {
+            context.logger(`⚠️  Erro Avatar API: ${error.message}`)
+          }
+        }
+
+        // === 3. Upload photo to ClickUp (if found) ===
+        if (photoUrl) {
+          try {
+            context.logger('📤 Fazendo upload da foto...')
+
+            // Download photo
+            const photoResponse = await fetch(photoUrl)
+            const photoBlob = await photoResponse.blob()
+
+            // Upload to ClickUp
+            const formData = new FormData()
+            formData.append('attachment', photoBlob, `profile-${photoSource}.jpg`)
+
+            const uploadResponse = await fetch(
+              `https://api.clickup.com/api/v2/task/${taskId}/attachment`,
+              {
+                method: 'POST',
+                headers: {
+                  'Authorization': context.secrets.CLICKUP_API_KEY || ''
+                },
+                body: formData
+              }
+            )
+
+            if (uploadResponse.ok) {
+              const uploadData = await uploadResponse.json()
+              context.logger(`✅ Foto anexada: ${uploadData.url}`)
+
+              return {
+                taskId,
+                taskUrl: task.url,
+                photoUploaded: true,
+                photoSource,
+                photoUrl: uploadData.url
+              }
+            } else {
+              context.logger(`❌ Erro upload: ${uploadResponse.status}`)
+            }
+          } catch (error: any) {
+            context.logger(`❌ Erro ao fazer upload: ${error.message}`)
+          }
+        } else {
+          context.logger('ℹ️  Nenhuma foto encontrada')
+        }
+
+        // Always return (even without photo)
+        return {
+          taskId,
+          taskUrl: task.url,
+          photoUploaded: false,
+          photoSource: 'none'
         }
       }
     })
