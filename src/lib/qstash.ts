@@ -15,9 +15,18 @@ export async function enqueueNode(payload: {
 
   const url = `${baseUrl}/api/workers/execute-node`
 
-  await qstash.publishJSON({
-    url,
-    body: payload,
-    retries: 3
-  })
+  console.log(`[QStash] Enqueuing node ${payload.nodeIndex} for execution ${payload.executionId} to ${url}`)
+
+  try {
+    const result = await qstash.publishJSON({
+      url,
+      body: payload,
+      retries: 3
+    })
+    console.log(`[QStash] Successfully enqueued:`, result)
+    return result
+  } catch (error) {
+    console.error(`[QStash] Failed to enqueue:`, error)
+    throw error
+  }
 }
