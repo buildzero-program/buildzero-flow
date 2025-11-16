@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { NextResponse } from 'next/server'
 import { db } from '~/lib/db'
 import { getWorkflow } from '~/workflows/registry'
 import type { NodeExecutionContext } from '~/lib/workflow-engine/types'

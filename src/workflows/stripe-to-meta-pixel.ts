@@ -63,7 +63,7 @@ export const stripeToMetaPixel = new Workflow({
       name: 'Send to Meta Conversions API',
       method: 'POST',
       url: 'https://graph.facebook.com/v19.0/YOUR_PIXEL_ID/events', // TODO: Replace YOUR_PIXEL_ID
-      headers: (context) => ({
+      headers: (_context) => ({
         'Content-Type': 'application/json'
       }),
       body: (input, context) => {
