@@ -138,8 +138,11 @@ describe('Stripe → Meta Pixel Workflow', () => {
         id: 'send-to-meta',
         name: 'Send to Meta Conversions API',
         method: 'POST',
-        url: `https://graph.facebook.com/v19.0/${context.secrets.META_PIXEL_ID}/events`,
-        headers: (context) => ({
+        url: (context) => {
+          const pixelId = context.secrets.META_PIXEL_ID || ''
+          return `https://graph.facebook.com/v19.0/${pixelId}/events`
+        },
+        headers: () => ({
           'Content-Type': 'application/json'
         }),
         body: (input, context) => {
@@ -148,7 +151,7 @@ describe('Stripe → Meta Pixel Workflow', () => {
 
           return {
             data: [event],
-            access_token: context.secrets.META_ACCESS_TOKEN
+            access_token: context.secrets.META_ACCESS_TOKEN || ''
           }
         }
       })

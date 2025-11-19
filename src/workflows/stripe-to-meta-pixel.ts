@@ -62,8 +62,11 @@ export const stripeToMetaPixel = new Workflow({
       id: 'send-to-meta',
       name: 'Send to Meta Conversions API',
       method: 'POST',
-      url: 'https://graph.facebook.com/v19.0/YOUR_PIXEL_ID/events', // TODO: Replace YOUR_PIXEL_ID
-      headers: (_context) => ({
+      url: (context) => {
+        const pixelId = context.secrets.META_PIXEL_ID || ''
+        return `https://graph.facebook.com/v19.0/${pixelId}/events`
+      },
+      headers: () => ({
         'Content-Type': 'application/json'
       }),
       body: (input, context) => {
@@ -72,7 +75,7 @@ export const stripeToMetaPixel = new Workflow({
 
         return {
           data: [event],
-          access_token: context.secrets.META_ACCESS_TOKEN || 'YOUR_ACCESS_TOKEN'
+          access_token: context.secrets.META_ACCESS_TOKEN || ''
         }
       }
     })

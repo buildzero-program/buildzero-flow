@@ -102,6 +102,76 @@ describe('HttpNode', () => {
     )
   })
 
+  it('should support dynamic URL from context secrets', async () => {
+    const mockFetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ events_received: 1, fbtrace_id: 'test123' })
+    })
+    global.fetch = mockFetch
+
+    const node = new HttpNode({
+      id: 'meta-pixel',
+      name: 'Send to Meta Pixel',
+      method: 'POST',
+      url: (context) => {
+        const pixelId = context.secrets.META_PIXEL_ID
+        return `https://graph.facebook.com/v19.0/${pixelId}/events`
+      },
+      headers: () => ({
+        'Content-Type': 'application/json'
+      }),
+      body: (input, context) => ({
+        data: [input.data],
+        access_token: context.secrets.META_ACCESS_TOKEN
+      })
+    })
+
+    const context: NodeExecutionContext = {
+      executionId: 'exec-1',
+      workflowId: 'stripe-to-meta',
+      nodeIndex: 2,
+      secrets: {
+        META_PIXEL_ID: '620115397855823',
+        META_ACCESS_TOKEN: 'test_token_123'
+      },
+      logger: vi.fn()
+    }
+
+    const input = {
+      data: {
+        event_name: 'Purchase',
+        event_time: 1234567890,
+        custom_data: { value: 99.90, currency: 'BRL' }
+      },
+      itemIndex: 0
+    }
+
+    const output = await node.execute(input, context)
+
+    expect(mockFetch).toHaveBeenCalledWith(
+      'https://graph.facebook.com/v19.0/620115397855823/events',
+      expect.objectContaining({
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+    )
+
+    const requestBody = JSON.parse(mockFetch.mock.calls[0]?.[1]?.body as string)
+    expect(requestBody).toMatchObject({
+      data: [{
+        event_name: 'Purchase',
+        event_time: 1234567890,
+        custom_data: { value: 99.90, currency: 'BRL' }
+      }],
+      access_token: 'test_token_123'
+    })
+
+    expect(output).toEqual({ events_received: 1, fbtrace_id: 'test123' })
+  })
+
   it('should create ClickUp task with correct format', async () => {
     const mockFetch = vi.fn().mockResolvedValue({
       ok: true,
