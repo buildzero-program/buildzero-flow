@@ -8,6 +8,7 @@ export const stripeToMetaPixel = new Workflow({
   id: 'stripe-to-meta-pixel',
   name: 'Stripe → Meta Pixel',
   description: 'Recebe webhooks do Stripe e envia eventos de conversão para Meta Conversions API',
+  ownerEmails: ['pedrohnas0@gmail.com', 'pedro@startu.com.br'],
   nodes: [
     // Node 0: Receive Stripe webhook
     new TriggerNode({

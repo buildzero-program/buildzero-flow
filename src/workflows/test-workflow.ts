@@ -5,6 +5,7 @@ export const testWorkflow = new Workflow({
   id: 'test-workflow',
   name: 'Test Workflow',
   description: 'Simple workflow for testing infrastructure',
+  ownerEmails: ['pedrohnas0@gmail.com'],
   nodes: [
     new TriggerNode({
       id: 'trigger',

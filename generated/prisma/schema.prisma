@@ -24,18 +24,39 @@ enum LogStatus {
   RETRYING
 }
 
+// ===== User Model =====
+
+model User {
+  id          String      @id @default(cuid())
+  email       String      @unique
+  name        String?
+  image       String?
+  clerkUserId String?     @unique
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  executions  Execution[]
+
+  @@index([email])
+  @@index([clerkUserId])
+}
+
+// ===== Execution Models =====
+
 model Execution {
   id               String          @id @default(cuid())
   workflowId       String
+  userId           String
   status           ExecutionStatus @default(RUNNING)
   currentNodeIndex Int             @default(0)
   startedAt        DateTime        @default(now())
   finishedAt       DateTime?
   logs             ExecutionLog[]
+  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([workflowId])
   @@index([status])
   @@index([startedAt])
+  @@index([userId])
 }
 
 model ExecutionLog {

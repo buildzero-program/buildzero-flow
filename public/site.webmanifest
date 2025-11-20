@@ -3,17 +3,12 @@
   "short_name": "BZ Flow",
   "icons": [
     {
-      "src": "/android-chrome-192x192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/android-chrome-512x512.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
     }
   ],
-  "theme_color": "#D7FF00",
-  "background_color": "#000000",
+  "theme_color": "#FF1A43",
+  "background_color": "#0f172a",
   "display": "standalone"
 }

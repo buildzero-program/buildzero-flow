@@ -1,6 +1,6 @@
 import { Client } from '@upstash/qstash'
 
-const qstash = new Client({
+export const qstash = new Client({
   token: process.env.QSTASH_TOKEN!
 })
 

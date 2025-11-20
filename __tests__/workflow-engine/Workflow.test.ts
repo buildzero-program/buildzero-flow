@@ -17,11 +17,13 @@ describe('Workflow', () => {
     const workflow = new Workflow({
       id: 'test-workflow',
       name: 'Test Workflow',
+      ownerEmails: ['test@example.com'],
       nodes: [mockNode]
     })
 
     expect(workflow.id).toBe('test-workflow')
     expect(workflow.name).toBe('Test Workflow')
+    expect(workflow.ownerEmails).toEqual(['test@example.com'])
     expect(workflow.nodes).toHaveLength(1)
     expect(workflow.nodes[0]).toBe(mockNode)
   })
@@ -43,6 +45,7 @@ describe('Workflow', () => {
       id: 'test',
       name: 'Test',
       description: 'Test description',
+      ownerEmails: ['owner@test.com'],
       nodes: [mockNode]
     })
 

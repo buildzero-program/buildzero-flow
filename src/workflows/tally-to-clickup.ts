@@ -8,6 +8,7 @@ export const tallyToClickup = new Workflow({
   id: 'tally-to-clickup',
   name: 'Tally → ClickUp',
   description: 'Captura aplicações do Tally e cria tasks no ClickUp',
+  ownerEmails: ['pedrohnas0@gmail.com'],
   nodes: [
     // Node 0: Receive Tally webhook
     new TriggerNode({

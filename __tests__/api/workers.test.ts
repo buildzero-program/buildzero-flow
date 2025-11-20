@@ -7,24 +7,29 @@ vi.mock('~/lib/qstash', () => ({
 }))
 
 describe.sequential('POST /api/workers/execute-node', () => {
-  // Cleanup before and after each test
-  beforeEach(async () => {
-    await db.executionLog.deleteMany()
-    await db.execution.deleteMany()
-  })
-
+  // Cleanup after each test
   afterEach(async () => {
     await db.executionLog.deleteMany()
     await db.execution.deleteMany()
+    await db.user.deleteMany()
   })
 
   it('should execute node and create log', async () => {
-    // Setup: create execution first
+    // Setup: create user first
+    const user = await db.user.create({
+      data: {
+        email: 'test@test.com',
+        clerkUserId: 'user_test_123'
+      }
+    })
+
+    // Setup: create execution
     const execution = await db.execution.create({
       data: {
         workflowId: 'test-workflow',
         status: 'RUNNING',
-        currentNodeIndex: 0
+        currentNodeIndex: 0,
+        userId: user.id
       }
     })
 
@@ -60,11 +65,20 @@ describe.sequential('POST /api/workers/execute-node', () => {
   })
 
   it('should mark execution as COMPLETED if last node', async () => {
+    // Setup: create user first
+    const user = await db.user.create({
+      data: {
+        email: 'test2@test.com',
+        clerkUserId: 'user_test_456'
+      }
+    })
+
     const execution = await db.execution.create({
       data: {
         workflowId: 'test-workflow',
         status: 'RUNNING',
-        currentNodeIndex: 0
+        currentNodeIndex: 0,
+        userId: user.id
       }
     })
 
@@ -95,11 +109,20 @@ describe.sequential('POST /api/workers/execute-node', () => {
   })
 
   it('should handle node execution errors', async () => {
+    // Setup: create user first
+    const user = await db.user.create({
+      data: {
+        email: 'test3@test.com',
+        clerkUserId: 'user_test_789'
+      }
+    })
+
     const execution = await db.execution.create({
       data: {
         workflowId: 'test-workflow',
         status: 'RUNNING',
-        currentNodeIndex: 0
+        currentNodeIndex: 0,
+        userId: user.id
       }
     })
 

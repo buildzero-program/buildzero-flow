@@ -93,9 +93,20 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
+exports.Prisma.UserScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  name: 'name',
+  image: 'image',
+  clerkUserId: 'clerkUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.ExecutionScalarFieldEnum = {
   id: 'id',
   workflowId: 'workflowId',
+  userId: 'userId',
   status: 'status',
   currentNodeIndex: 'currentNodeIndex',
   startedAt: 'startedAt',
@@ -161,6 +172,7 @@ exports.LogStatus = exports.$Enums.LogStatus = {
 };
 
 exports.Prisma.ModelName = {
+  User: 'User',
   Execution: 'Execution',
   ExecutionLog: 'ExecutionLog'
 };
@@ -212,13 +224,13 @@ const config = {
       }
     }
   },
-  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nenum ExecutionStatus {\n  RUNNING\n  COMPLETED\n  FAILED\n}\n\nenum LogStatus {\n  RUNNING\n  SUCCESS\n  FAILED\n  RETRYING\n}\n\nmodel Execution {\n  id               String          @id @default(cuid())\n  workflowId       String\n  status           ExecutionStatus @default(RUNNING)\n  currentNodeIndex Int             @default(0)\n  startedAt        DateTime        @default(now())\n  finishedAt       DateTime?\n  logs             ExecutionLog[]\n\n  @@index([workflowId])\n  @@index([status])\n  @@index([startedAt])\n}\n\nmodel ExecutionLog {\n  id          String    @id @default(cuid())\n  executionId String\n  execution   Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)\n  nodeIndex   Int\n  nodeId      String\n  nodeName    String\n  input       Json // { data: {...}, itemIndex: 0 }\n  output      Json? // { data: {...}, itemIndex: 0 }\n  error       String? // Error message if node failed\n  status      LogStatus @default(RUNNING)\n  attempt     Int       @default(1)\n  startedAt   DateTime  @default(now())\n  finishedAt  DateTime?\n  durationMs  Int?\n\n  @@index([executionId])\n  @@index([status])\n}\n",
-  "inlineSchemaHash": "0155be37e7b4969d105218afb5e4928d34f010bd16a05acc89c44753e4efae22",
+  "inlineSchema": "// This is your Prisma schema file,\n// learn more about it in the docs: https://pris.ly/d/prisma-schema\n\ngenerator client {\n  provider = \"prisma-client-js\"\n  output   = \"../generated/prisma\"\n}\n\ndatasource db {\n  provider = \"postgresql\"\n  url      = env(\"DATABASE_URL\")\n}\n\nenum ExecutionStatus {\n  RUNNING\n  COMPLETED\n  FAILED\n}\n\nenum LogStatus {\n  RUNNING\n  SUCCESS\n  FAILED\n  RETRYING\n}\n\n// ===== User Model =====\n\nmodel User {\n  id          String      @id @default(cuid())\n  email       String      @unique\n  name        String?\n  image       String?\n  clerkUserId String?     @unique\n  createdAt   DateTime    @default(now())\n  updatedAt   DateTime    @updatedAt\n  executions  Execution[]\n\n  @@index([email])\n  @@index([clerkUserId])\n}\n\n// ===== Execution Models =====\n\nmodel Execution {\n  id               String          @id @default(cuid())\n  workflowId       String\n  userId           String\n  status           ExecutionStatus @default(RUNNING)\n  currentNodeIndex Int             @default(0)\n  startedAt        DateTime        @default(now())\n  finishedAt       DateTime?\n  logs             ExecutionLog[]\n  user             User            @relation(fields: [userId], references: [id], onDelete: Cascade)\n\n  @@index([workflowId])\n  @@index([status])\n  @@index([startedAt])\n  @@index([userId])\n}\n\nmodel ExecutionLog {\n  id          String    @id @default(cuid())\n  executionId String\n  execution   Execution @relation(fields: [executionId], references: [id], onDelete: Cascade)\n  nodeIndex   Int\n  nodeId      String\n  nodeName    String\n  input       Json // { data: {...}, itemIndex: 0 }\n  output      Json? // { data: {...}, itemIndex: 0 }\n  error       String? // Error message if node failed\n  status      LogStatus @default(RUNNING)\n  attempt     Int       @default(1)\n  startedAt   DateTime  @default(now())\n  finishedAt  DateTime?\n  durationMs  Int?\n\n  @@index([executionId])\n  @@index([status])\n}\n",
+  "inlineSchemaHash": "e25bf7aaf43159530515f248d2dd90d37e991a826cdec9ffe747dd545e852996",
   "copyEngine": true
 }
 config.dirname = '/'
 
-config.runtimeDataModel = JSON.parse("{\"models\":{\"Execution\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"workflowId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"ExecutionStatus\"},{\"name\":\"currentNodeIndex\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"startedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"finishedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"logs\",\"kind\":\"object\",\"type\":\"ExecutionLog\",\"relationName\":\"ExecutionToExecutionLog\"}],\"dbName\":null},\"ExecutionLog\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"executionId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"execution\",\"kind\":\"object\",\"type\":\"Execution\",\"relationName\":\"ExecutionToExecutionLog\"},{\"name\":\"nodeIndex\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"nodeId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"nodeName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"input\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"output\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"error\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"LogStatus\"},{\"name\":\"attempt\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"startedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"finishedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"durationMs\",\"kind\":\"scalar\",\"type\":\"Int\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
+config.runtimeDataModel = JSON.parse("{\"models\":{\"User\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"email\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"name\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"image\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"clerkUserId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"createdAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"updatedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"executions\",\"kind\":\"object\",\"type\":\"Execution\",\"relationName\":\"ExecutionToUser\"}],\"dbName\":null},\"Execution\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"workflowId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"userId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"ExecutionStatus\"},{\"name\":\"currentNodeIndex\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"startedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"finishedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"logs\",\"kind\":\"object\",\"type\":\"ExecutionLog\",\"relationName\":\"ExecutionToExecutionLog\"},{\"name\":\"user\",\"kind\":\"object\",\"type\":\"User\",\"relationName\":\"ExecutionToUser\"}],\"dbName\":null},\"ExecutionLog\":{\"fields\":[{\"name\":\"id\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"executionId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"execution\",\"kind\":\"object\",\"type\":\"Execution\",\"relationName\":\"ExecutionToExecutionLog\"},{\"name\":\"nodeIndex\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"nodeId\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"nodeName\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"input\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"output\",\"kind\":\"scalar\",\"type\":\"Json\"},{\"name\":\"error\",\"kind\":\"scalar\",\"type\":\"String\"},{\"name\":\"status\",\"kind\":\"enum\",\"type\":\"LogStatus\"},{\"name\":\"attempt\",\"kind\":\"scalar\",\"type\":\"Int\"},{\"name\":\"startedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"finishedAt\",\"kind\":\"scalar\",\"type\":\"DateTime\"},{\"name\":\"durationMs\",\"kind\":\"scalar\",\"type\":\"Int\"}],\"dbName\":null}},\"enums\":{},\"types\":{}}")
 defineDmmfProperty(exports.Prisma, config.runtimeDataModel)
 config.engineWasm = {
   getRuntime: async () => require('./query_engine_bg.js'),

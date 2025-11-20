@@ -121,9 +121,20 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
   Serializable: 'Serializable'
 });
 
+exports.Prisma.UserScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  name: 'name',
+  image: 'image',
+  clerkUserId: 'clerkUserId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.ExecutionScalarFieldEnum = {
   id: 'id',
   workflowId: 'workflowId',
+  userId: 'userId',
   status: 'status',
   currentNodeIndex: 'currentNodeIndex',
   startedAt: 'startedAt',
@@ -189,6 +200,7 @@ exports.LogStatus = exports.$Enums.LogStatus = {
 };
 
 exports.Prisma.ModelName = {
+  User: 'User',
   Execution: 'Execution',
   ExecutionLog: 'ExecutionLog'
 };
