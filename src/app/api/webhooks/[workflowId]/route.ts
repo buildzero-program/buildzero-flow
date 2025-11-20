@@ -59,14 +59,27 @@ export async function POST(
       ? `https://${process.env.VERCEL_URL}`
       : 'http://localhost:3000'
 
-    await qstash.publishJSON({
-      url: `${baseUrl}/api/workers/execute-node`,
-      body: {
-        executionId: execution.id,
-        nodeIndex: 0,
-        input: { data: payload, itemIndex: 0 }
-      }
-    })
+    const qstashUrl = `${baseUrl}/api/workers/execute-node`
+    const qstashBody = {
+      executionId: execution.id,
+      nodeIndex: 0,
+      input: { data: payload, itemIndex: 0 }
+    }
+
+    console.log('🚀 Enfileirando no QStash:')
+    console.log('   URL:', qstashUrl)
+    console.log('   Body:', JSON.stringify(qstashBody, null, 2))
+
+    try {
+      const qstashResponse = await qstash.publishJSON({
+        url: qstashUrl,
+        body: qstashBody
+      })
+      console.log('✅ QStash response:', JSON.stringify(qstashResponse, null, 2))
+    } catch (qstashError) {
+      console.error('❌ QStash error:', qstashError)
+      throw qstashError
+    }
 
     return NextResponse.json({
       success: true,
