@@ -2,7 +2,8 @@
 
 import { useSignIn } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
-import { useState, FormEvent } from "react"
+import Link from "next/link"
+import { useState, type FormEvent } from "react"
 
 export default function SignInPage() {
   const { isLoaded, signIn, setActive } = useSignIn()
@@ -31,8 +32,9 @@ export default function SignInPage() {
       } else {
         setError("Sign in incomplete. Please try again.")
       }
-    } catch (err: any) {
-      setError(err.errors?.[0]?.message || "Invalid email or password")
+    } catch (err: unknown) {
+      const error = err as { errors?: Array<{ message: string }> }
+      setError(error.errors?.[0]?.message ?? "Invalid email or password")
     } finally {
       setLoading(false)
     }
@@ -47,8 +49,9 @@ export default function SignInPage() {
         redirectUrl: "/sso-callback",
         redirectUrlComplete: "/",
       })
-    } catch (err: any) {
-      setError(err.errors?.[0]?.message || "OAuth sign in failed")
+    } catch (err: unknown) {
+      const error = err as { errors?: Array<{ message: string }> }
+      setError(error.errors?.[0]?.message ?? "OAuth sign in failed")
     }
   }
 
@@ -146,9 +149,9 @@ export default function SignInPage() {
           </div>
 
           <div className="text-center">
-            <a href="/sign-up" className="text-sm text-blue-400 hover:text-blue-300">
-              Don't have an account? Sign up
-            </a>
+            <Link href="/sign-up" className="text-sm text-blue-400 hover:text-blue-300">
+              Don&apos;t have an account? Sign up
+            </Link>
           </div>
         </form>
       </div>

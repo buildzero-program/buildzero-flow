@@ -2,7 +2,8 @@
 
 import { useSignUp } from "@clerk/nextjs"
 import { useRouter } from "next/navigation"
-import { useState, FormEvent } from "react"
+import Link from "next/link"
+import { useState, type FormEvent } from "react"
 
 export default function SignUpPage() {
   const { isLoaded, signUp, setActive } = useSignUp()
@@ -29,8 +30,9 @@ export default function SignUpPage() {
 
       await signUp.prepareEmailAddressVerification({ strategy: "email_code" })
       setVerifying(true)
-    } catch (err: any) {
-      setError(err.errors?.[0]?.message || "Failed to create account")
+    } catch (err: unknown) {
+      const error = err as { errors?: Array<{ message: string }> }
+      setError(error.errors?.[0]?.message ?? "Failed to create account")
     } finally {
       setLoading(false)
     }
@@ -54,8 +56,9 @@ export default function SignUpPage() {
       } else {
         setError("Verification incomplete. Please try again.")
       }
-    } catch (err: any) {
-      setError(err.errors?.[0]?.message || "Invalid verification code")
+    } catch (err: unknown) {
+      const error = err as { errors?: Array<{ message: string }> }
+      setError(error.errors?.[0]?.message ?? "Invalid verification code")
     } finally {
       setLoading(false)
     }
@@ -70,8 +73,9 @@ export default function SignUpPage() {
         redirectUrl: "/sso-callback",
         redirectUrlComplete: "/",
       })
-    } catch (err: any) {
-      setError(err.errors?.[0]?.message || "OAuth sign up failed")
+    } catch (err: unknown) {
+      const error = err as { errors?: Array<{ message: string }> }
+      setError(error.errors?.[0]?.message ?? "OAuth sign up failed")
     }
   }
 
@@ -171,9 +175,9 @@ export default function SignUpPage() {
             </div>
 
             <div className="text-center">
-              <a href="/sign-in" className="text-sm text-blue-400 hover:text-blue-300">
+              <Link href="/sign-in" className="text-sm text-blue-400 hover:text-blue-300">
                 Already have an account? Sign in
-              </a>
+              </Link>
             </div>
           </form>
         ) : (
