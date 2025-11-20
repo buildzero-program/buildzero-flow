@@ -8,7 +8,9 @@ const isPublicRoute = createRouteMatcher([
   '/',
   '/sign-in(.*)',
   '/sign-up(.*)',
+  '/sso-callback(.*)',
   '/api/webhooks(.*)', // Webhooks públicos (validados por signature)
+  '/api/workers(.*)', // Workers (validados por QStash signature)
 ])
 
 /**

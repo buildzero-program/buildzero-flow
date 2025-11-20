@@ -54,18 +54,17 @@ export async function POST(
       }
     })
 
-    // 5. Enqueue execution in QStash
-    const qstashUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}/api/execute/${execution.id}`
-      : `${process.env.VERCEL_URL || 'http://localhost:3000'}/api/execute/${execution.id}`
+    // 5. Enqueue first node execution in QStash
+    const baseUrl = process.env.VERCEL_URL
+      ? `https://${process.env.VERCEL_URL}`
+      : 'http://localhost:3000'
 
     await qstash.publishJSON({
-      url: qstashUrl,
+      url: `${baseUrl}/api/workers/execute-node`,
       body: {
         executionId: execution.id,
-        workflowId: workflow.id,
-        userId: user.id,
-        payload
+        nodeIndex: 0,
+        input: { data: payload, itemIndex: 0 }
       }
     })
 
