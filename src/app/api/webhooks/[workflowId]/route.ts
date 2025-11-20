@@ -55,8 +55,8 @@ export async function POST(
     })
 
     // 5. Enqueue first node execution in QStash
-    const baseUrl = process.env.VERCEL_URL
-      ? `https://${process.env.VERCEL_URL}`
+    const baseUrl = process.env.NODE_ENV === 'production'
+      ? 'https://flow.buildzero.ai'
       : 'http://localhost:3000'
 
     const qstashUrl = `${baseUrl}/api/workers/execute-node`
