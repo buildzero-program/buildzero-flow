@@ -80,20 +80,29 @@ export async function POST(req: NextRequest) {
         }
       })
     } else {
-      // Enqueue next node with current node's output
-      await enqueueNode({
-        executionId,
-        nodeIndex: nodeIndex + 1,
-        input: { data: output, itemIndex: input.itemIndex }
-      })
-
+      // Update current node index
       await db.execution.update({
         where: { id: executionId },
         data: { currentNodeIndex: nodeIndex + 1 }
       })
+
+      // In production, enqueue next node via QStash
+      // In development, skip QStash (doesn't work with localhost)
+      if (process.env.NODE_ENV === 'production') {
+        await enqueueNode({
+          executionId,
+          nodeIndex: nodeIndex + 1,
+          input: { data: output, itemIndex: input.itemIndex }
+        })
+      }
     }
 
-    return NextResponse.json({ success: true })
+    return NextResponse.json({
+      success: true,
+      output,
+      nextNodeIndex: isLastNode ? null : nodeIndex + 1,
+      status: isLastNode ? 'COMPLETED' : 'SUCCESS'
+    })
 
   } catch (error) {
     // Update log (FAILED)

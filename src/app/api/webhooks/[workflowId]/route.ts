@@ -66,20 +66,10 @@ export async function POST(
       input: { data: payload, itemIndex: 0 }
     }
 
-    console.log('🚀 Enfileirando no QStash:')
-    console.log('   URL:', qstashUrl)
-    console.log('   Body:', JSON.stringify(qstashBody, null, 2))
-
-    try {
-      const qstashResponse = await qstash.publishJSON({
-        url: qstashUrl,
-        body: qstashBody
-      })
-      console.log('✅ QStash response:', JSON.stringify(qstashResponse, null, 2))
-    } catch (qstashError) {
-      console.error('❌ QStash error:', qstashError)
-      throw qstashError
-    }
+    await qstash.publishJSON({
+      url: qstashUrl,
+      body: qstashBody
+    })
 
     return NextResponse.json({
       success: true,
