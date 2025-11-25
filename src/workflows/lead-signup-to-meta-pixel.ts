@@ -8,7 +8,7 @@ export const leadSignupToMetaPixel = new Workflow({
   id: 'lead-signup-to-meta-pixel',
   name: 'Lead Signup → Meta Pixel',
   description: 'Recebe cadastros de leads da LP e envia eventos para Meta Conversions API',
-  ownerEmails: ['pedro@paulinetti.com', 'pedrohnas0@gmail.com'],
+  ownerEmails: ['pedro@startu.com.br', 'pedrohnas0@gmail.com'],
   nodes: [
     // Node 0: Receive lead signup webhook
     new TriggerNode({
