@@ -140,7 +140,7 @@ function parseFaturamento(description: string): { faturamento: string; isPreApro
 }
 
 function getFirstName(fullName: string): string {
-  return fullName.split(' ')[0]
+  return fullName.split(' ')[0] || fullName
 }
 
 function getRandomDelay(): number {
