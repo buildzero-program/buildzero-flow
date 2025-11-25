@@ -618,6 +618,7 @@ async function main() {
 
   for (let i = 0; i < tasks.length; i++) {
     const task = tasks[i]
+    if (!task) continue
     const result = await processLead(task, i, tasks.length)
     results.push(result)
 
