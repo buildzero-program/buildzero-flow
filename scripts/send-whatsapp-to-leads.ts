@@ -469,9 +469,8 @@ async function findOrCreateConversation(contact: ChatwootContact): Promise<numbe
   }
 
   // Se não encontrou, criar nova conversa
-  // Pegar source_id do primeiro contact_inbox
-  const sourceId = contact.contact_inboxes?.[0]?.source_id ||
-                   contact.identifier ||
+  // Usar identifier ou gerar source_id a partir do phone_number
+  const sourceId = contact.identifier ||
                    `${contact.phone_number.replace(/\D/g, '')}@s.whatsapp.net`
 
   const conversation = await createChatwootConversation(contact.id, sourceId)
